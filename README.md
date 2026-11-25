@@ -7,7 +7,7 @@ Working pieces from my own setup for AI coding agents (Claude Code and Codex acr
 | Tool | What it does | Language |
 |---|---|---|
 | [codex-reviewer](codex-reviewer/README.md) | Claude Code writes, Codex reviews every diff before commit, at most three rounds | RU, English summary at the bottom |
-| [close-session](close-session/README.md) | One phrase closes an agent session: open threads and lessons saved, only own work verified, committed and pushed, merged session branches removed | RU, English summary at the bottom |
+| [close-session](close-session/README.md) | One phrase closes an agent session: open threads, client facts, content ideas, decisions and lessons saved to their folders, only own work verified, committed and pushed, merged session branches removed | RU, English summary at the bottom |
 
 New tools are added as they are published.
 

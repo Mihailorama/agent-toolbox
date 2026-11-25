@@ -18,7 +18,7 @@
 
 1. Определяет репозиторий, ветку по умолчанию и рабочие копии, и выясняет, какие изменения сделала именно эта сессия. Все остальное не трогает.
 2. Записывает незакрытые задачи в трекер или TODO проекта, каждую с причиной и следующим шагом. Пустых пунктов для галочки не создает.
-3. Разбирает сессию на полезные выводы: что сработало, где были грабли, какие поправки дал пользователь. Кладет их в инструкции агента или заметки проекта, улучшая существующую запись, а не дублируя ее.
+3. Заполняет журнал сбора: по каждому направлению из таблицы ниже (клиенты, контент, бэк-офис, решения, инженерные знания, правила агента, прочее) либо записывает найденное в нужную папку, либо пишет "нечего" с причиной. Пустых строк не оставляет. Улучшает существующую запись, а не дублирует ее. Цифры сохраняет целиком: было, стало, что именно мерили и когда.
 4. Запускает проверки, которые требует репозиторий: линтер, тесты, сборку. Старый зеленый CI доказательством не считает.
 5. Добавляет в коммит только свои файлы. Если в одном файле перемешаны строки двух сессий, берет только свои через [references/partial-stage.py](references/partial-stage.py).
 6. Вливает работу по правилам репозитория: прямой пуш, pull request или merge request. Если пуш отклонен или хук упал, чинит причину, а не обходит проверку.
@@ -58,19 +58,33 @@ cp -r close-session ~/.agents/skills/
 
 ## Что подстроить под свой репозиторий
 
-Скилл читает правила из `CLAUDE.md` или `AGENTS.md` проекта, поэтому главное записать туда:
+Все хранится в одном репозитории, в том, где запущен скилл. Для каждого направления агент ищет папку, которая у вас для этого уже есть. Если такой нет, создает папку по умолчанию. Одно направление, одно место. Пути можно переименовать, достаточно написать их в `CLAUDE.md` или `AGENTS.md`.
 
-- **Куда писать хвосты.** Файл TODO, BACKLOG или ваш трекер. Если трекер внешний, явно напишите, что агенту можно туда писать.
-- **Куда класть выводы.** Например, `docs/NOTES.md` для знаний о проекте и `AGENTS.md` для правил поведения агента.
+| Направление | Что туда идет | Путь по умолчанию |
+|---|---|---|
+| Хвосты | незаконченная работа, баги, следующие шаги | `TODO.md` |
+| Клиенты и сделки | с кем говорили, о чем договорились, статус, следующий шаг, возражения, слова клиента | `clients/<имя>.md` |
+| Контент | идеи, заготовки постов и статей, случаи для цитаты, измеренные результаты | `content/ideas/` |
+| Бэк-офис | администрирование, подрядчики, договоры, аккаунты, инфраструктура | `back-office/` |
+| Продукт и стратегия | принятые решения, отвергнутые варианты и почему, приоритеты, цены | `docs/decisions/` |
+| Инженерные знания | архитектура, грабли, порядок восстановления, плейбуки, замеры | `docs/playbooks/` |
+| Правила агента и скиллы | как агенту действовать в следующий раз, ваши поправки | `AGENTS.md` или `CLAUDE.md`, `.claude/skills/` |
+| Личное и прочее | все долговечное, что не подошло выше | `notes/` |
+
+Пароли и токены агент не пишет никуда. Данные клиентов и суммы сделок пишет только в приватный репозиторий: перед записью он проверяет видимость репозитория, и если тот публичный или это непонятно, пишет обобщенную заметку и предупреждает вас.
+
+Еще стоит записать в `CLAUDE.md` или `AGENTS.md`:
+
 - **Чем проверять.** Одна команда, которая запускает все нужное: `make check`, `npm test`, `pytest`.
 - **Как вливать.** Прямой пуш в основную ветку или только через pull request. Удалять ли влитые ветки на сервере.
 - **Что считается продом.** Какие ветки выкатываются автоматически, чтобы пуш в них агент делал только с вашего согласия.
+- **Внешний трекер.** Если хвосты живут не в `TODO.md`, а в трекере, явно напишите, что агенту можно туда писать.
 
 Сам `SKILL.md` можно сокращать и дополнять. Если у вас свой формат отчета, поменяйте раздел 9.
 
 ## English summary
 
-`close-session` is a skill for Claude Code and Codex that closes a work session end to end on one phrase ("close session", "закрой сессию"): it records unfinished threads in the project's tracker or TODO file, saves reusable lessons into the project's notes or agent instructions, runs the repository's checks, commits only the files this session owns (with a small script for staging your own lines when another session edited the same file), integrates through the repository's workflow (direct push or pull request), handles failed hooks and rejected pushes without bypassing checks, removes only clean, merged session branches and worktrees, and ends with a short report. It stops and asks before production deploys, production data changes, outbound messages, and history rewrites. Install by copying the folder to `~/.claude/skills/` (or `.claude/skills/` in a project) for Claude Code, or `~/.agents/skills/` for Codex. Adapt it by writing your TODO location, check command, and merge policy into the project's `CLAUDE.md` or `AGENTS.md`.
+`close-session` is a skill for Claude Code and Codex that closes a work session end to end on one phrase ("close session", "закрой сессию"): it fills a mandatory harvest ledger with one line per direction (open threads, clients and deals, content, back office, product decisions, engineering playbooks, agent rules and skills, other), each saved to one folder of the current repository (the existing one, or a default such as `clients/`, `content/ideas/`, `docs/decisions/`, `docs/playbooks/`, `TODO.md`), writes client data only into private repositories, runs the repository's checks, commits only the files this session owns (with a small script for staging your own lines when another session edited the same file), integrates through the repository's workflow (direct push or pull request), handles failed hooks and rejected pushes without bypassing checks, removes only clean, merged session branches and worktrees, and ends with a short report. It stops and asks before production deploys, production data changes, outbound messages, and history rewrites. Install by copying the folder to `~/.claude/skills/` (or `.claude/skills/` in a project) for Claude Code, or `~/.agents/skills/` for Codex. Adapt it by writing your folder names, check command, and merge policy into the project's `CLAUDE.md` or `AGENTS.md`.
 
 ## License
 

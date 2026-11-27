@@ -88,4 +88,8 @@ cp -r close-session ~/.agents/skills/
 
 ## License
 
-MIT, see [LICENSE](../LICENSE).
+Texts (skill instructions, READMEs, prompt blocks): [CC BY 4.0](../LICENSE-CC-BY-4.0). Use, change and share them, including commercially, with credit: "Mikhail Sadofyev, github.com/Mihailorama/agent-toolbox" and a note if you changed the text.
+
+Code (scripts): [MIT](../LICENSE).
+
+Тексты навыков и описаний: CC BY 4.0, можно использовать, менять и распространять, в том числе в коммерческой работе, с указанием автора и ссылки на этот репозиторий. Код: MIT.
